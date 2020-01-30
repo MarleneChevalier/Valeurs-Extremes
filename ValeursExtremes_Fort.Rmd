@@ -34,8 +34,9 @@ color: Blue;
 }
 </style>
 
-```{r setup, include=FALSE, echo=FALSE, warning=FALSE}
+```{r setup, echo=FALSE,include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE, fig.height=8, fig.width=12)
+rm(list=ls())
 
 #chargement librairies
 library("evd")
@@ -50,7 +51,7 @@ library("tidyverse")
 
 # Sujet : précipitations quotidiennes à Fort Collins, au Colorado
 
-La quantité de précipitations quotidiennes est mesurée en pouces. Les données ont été enregistrées chaque jours entre le 01/01/1900 et le 31/12/1999, soient 36524 relevés de précipitations.  
+La quantité de précipitations quotidiennes est mesurée en pouces. Les données ont été enregistrées chaque jour entre le 01/01/1900 et le 31/12/1999, soient 36524 relevés de précipitations.  
 
 source : data(Fort)
 
@@ -61,31 +62,31 @@ Il s'agit d'étudier les valeurs extrêmes de cette série en utilisant et compa
 
 # Description de la série
 
-Les précipitations quotidiennes (variable *Prec*) sont comprises entre 0 et 4.63 pouces (=11.76cm). Les niveaux sont plus élévés au printemps (d'avril à juin), plus faibles en hiver (de novembre à février) et ils sont en plus grande partie inférieurs à 2 pouces.
+Les précipitations quotidiennes (variable *Prec*) sont comprises entre 0 et 4.63 pouces (=11.76cm). Elles sont en plus grande partie proches de 0 pouce : médiane à 0 et moyenne à 0.04 pouces.Les niveaux sont plus élévés au printemps (d'avril à juin), plus faibles en hiver (de novembre à février).
 
 ```{r chargmt,fig.height=10}
 data(Fort)
 summary(Fort)
 par(mfrow = c(2,2))
 boxplot(Fort$Prec,ylab="niv de précipitation (pouce)")
-hist(Fort$Prec,xlab="niv de précipitation (pouce)",ylab="nombre de jours")
+hist(Fort$Prec,xlab="niv de précipitation (pouce)",ylab="nombre de jours",main="")
 plot(Fort$Prec~Fort$year,xlab="année",ylab="niv de précipitation (pouce)")
 plot(Fort$Prec~Fort$month,xlab="mois",ylab="niv de précipitation (pouce)")
 #par(mfrow = c(1,1))
-title("niv de précipitation (pouce)")
+#title("niv de précipitation (pouce)")
 ```
 
-# Modélisation GEV : loi des maxima de la série
+# Modélisation Generalized Extreme Value (GEV) : loi des maxima de la série
 
-Nous avons observé graphiquement de la saisonnalité (printemps/hiver). Pour éviter ces effets et avoir des données equiréparties, découpons d'abord les données par bloc d'un an et sélectionnons le maximum annuel dans chacun des blocs (*fonction blockmaxxer*).  La matrice des données par bloc aura 100 lignes (au lieu de 36524).
+Nous avons observé graphiquement de la saisonnalité (printemps/hiver). Pour éviter ces effets et avoir des données équiréparties, découpons d'abord les données par bloc d'un an et sélectionnons le maximum annuel dans chacun des blocs (*fonction blockmaxxer*).  La matrice des données par bloc aura donc 100 lignes (au lieu de 36524).
 
 ```{r bloc,fig.height=5}
 bmFort=blockmaxxer(Fort, blocks = Fort$year, which="Prec")
-plot(bmFort$year, bmFort$Prec,main="Niveau maximum annuel de précipitation", xlab = "année", ylab = "niv précipitation") 
+plot(bmFort$year, bmFort$Prec,main="Niveaux maximaux annuels de précipitation", xlab = "année", ylab = "niv. précipitation") 
 
 ```
 
-## Modèle GEV avec MLE 
+## Modèle GEV avec estimation par maximum de vraissemblance (MLE) 
 
 Les coefficients du modèle GEV, a (position), b (échelle), gamma (forme) sont estimés par maximum de vraissemblance (fonction *fevd*). A partir de la valeur estimée du paramètre forme, on déduira le domaine d'attraction des maxima, auquel appartient la loi caractérisant le comportement des niveaux de précipitations extrêmes.  
 
@@ -104,15 +105,15 @@ ci(fitFortGEVMle,type="return.level",return.period=100)
 ci(fitFortGEVMle,type="return.level",return.period=1000)
 ```
 
-**Domaine d'attaction des valeurs extrêmes**
+**Domaine d'attraction des valeurs extrêmes**
 
-La valeur estimée de gamma (shape) est de 0.0919 > 0. Elle caractérise la domaine d'attraction de Fréchet. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être négatif (borne inferieure du CI <0). Nous testerons ci après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel) 
-Les 4 graphiques montrent un bon ajustement de la loi des extrêmes au DMA de Fréchet (points empiriques et modélisés proches).
+La valeur estimée de gamma (shape) est de 0.17 > 0. Elle caractérise le domaine d'attraction de Fréchet. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être négatif (borne inférieure du CI <0). Nous testerons ci-après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel).   
+Les 4 graphiques montrent un bon ajustement de la loi des extrêmes au DMA de Fréchet (proximité des points théoriques/empiriques/modélisés).
 
 
 **Niveaux de retour à 100 ans et 1000 ans**
 
-Notons déjà le niveau de retour à 100 ans à 5.1 pouces. Celui à 1000 ans est de 8.46 pouces avec un intervalle large, qui révèle une forte incertude sur la valeur ponctuelle estimée.
+Notons déjà le niveau de retour à 100 ans à 5.1 pouces. Celui à 1000 ans est de 8.5 pouces avec un intervalle large, qui révèle une forte incertude sur la valeur ponctuelle estimée.
 
 ## Modèle Gumbel avec MLE 
 
@@ -129,13 +130,11 @@ title("Gumbel - estimation par max de vraissemblance")
 
 ```
 
-On voit ici que les critères AIC et BIC de Gumbel sont plus élévés que ceux du modèle précédent et surtout les graphiques montrent un ajustement moins bon pour une distribution des extrêmes appartenant au domaine de Gumbel qu'à celui de Fréchet.
+On voit ici que les critères AIC et BIC de Gumbel sont plus élévés que ceux du modèle précédent et surtout les graphiques montrent un ajustement moins bon pour une distribution des extrêmes appartenant au domaine de Gumbel que pour celui de Fréchet. L'hypothèse selon laquelle le paramètre de forme, gamma, soit >0 est confirmée. Le domaine d'attraction de la loi des valeurs extrêmes serait bien Fréchet.
 
-Conclusion : l'hypothèse que le paramètre de forme, gamma, soit >0 est confirmée. Le domaine d'attraction de la loi des valeurs extrêmes est Fréchet.
+## Modèle GEV avec estimation par la méthode des moments (PWM)
 
-## Modèle GEV avec PWM
-
-Ici, les coefficients du modèle GEV (position, echelle, forme) sont estimés par la méthode des moments.  
+Ici, les coefficients du modèle GEV (position, échelle, forme) sont estimés par la méthode des moments.  
 
 ```{r gevPWM}
 # modelisation des maxima avec estimation coef selon PWM
@@ -152,18 +151,18 @@ ci(fitFortGEVMom,type="return.level",return.period=100)
 ci(fitFortGEVMom,type="return.level",return.period=1000)
 ```
 
-**Domaine d'attaction des valeurs extrêmes**
+**Domaine d'attraction des valeurs extrêmes**
 
 La valeur estimée de gamma (shape) est là aussi positive (=0.13).
-Les 4 graphiques montrent un ajustement de la loi des extrêmes au DMA de Fréchet un peu moins bon que celui de l'estimation des paramètre par maximum de vraissemblance.
+Les 4 graphiques montrent un ajustement de la loi des extrêmes au DMA de Fréchet un peu moins bon que celui de l'estimation des paramètres par maximum de vraissemblance.
 
 **Niveaux de retour à 100 ans et 1000 ans**
 
-Le niveau de retour à 100 ans est ici à 4.87 pouces . Celui à 1000 ans est de 7.6 pouces. Les intervalles de confiance sont moins large qu'avec les estimations sur le maximum de vraissemblance.
+Le niveau de retour à 100 ans est ici à 4.9 pouces. Celui à 1000 ans est de 7.6 pouces. Les intervalles de confiance sont moins larges qu'avec les estimations à partir du maximum de vraissemblance.
 
-# Modélisation GPD : loi des excès de la série
+# Modélisation Generalized Pareto Distribution (GPD) : loi des excès de la série
 
-Il s'agit ici d'envisager les valeurs extrémes comme les valeurs depassant un seuil à fixer et de modéliser les dépassements (excès).
+Il s'agit ici d'envisager les valeurs extrêmes comme les valeurs dépassant un seuil à fixer et de modéliser les dépassements (excès).
 
 ## Choix du seuil
 
@@ -171,14 +170,14 @@ Il s'agit ici d'envisager les valeurs extrémes comme les valeurs depassant un s
 
 ```{r GPDseuil1,fig.height=5}
 mrlplot(Fort$Prec,main="Mean Residual Life Plot - Détermination du seuil")
-abline(x= 2.5)
+
 ```
 
 Le graphique "Mean Residual Life Plot" permet d'évaluer une valeur de seuil de la distribution de Pareto (loi des excès). Ce seuil est identifié par une rupture de "linéarité" de la courbe. On observe ici ce changement de comportement autour du niveau de 2.5 pouces.
 
 **Seuils en fonction du nombre de dépassements**
 
-Une autre méthode pour evaluer le seuil est de tester plusieurs seuils en fonction du nombre d'excès observés au delà de celui-ci (fonction *findThreshold*): 
+Une autre méthode pour évaluer le seuil est de tester plusieurs seuils en fonction du nombre d'excès observés au delà de celui-ci (fonction *findThreshold*). On cherche les seuils correspondant au nombre d'excès suivants :
 
 ```{r GPDseuil2}
 seuilfind=findThreshold(Fort$Prec, c(1,5,10,20))
@@ -189,28 +188,28 @@ seuilfind
   - 5 niveaux de précipitations observées dépassent : 3.48 pouces  
   - 10 niveaux de précipitations observées dépassent : 2.98 pouces  
   - 20 niveaux de précipitations observées dépassent : 2.32 pouces  
+  
+D'après cette approche, au dessus d'un seuil à 2.98 pouces, on a 10 jours de précipitations observés, soit 1 jour tous les 10 ans. A cette fréquence, l'évènement commence à être rare : Ce seuil de 2.98 pouces peut être considéré comme convenable pour definir des valeurs extrêmes.
 
 **Seuils en fonction de la stabilité des estimateurs**  
-Traçons le graphique des valeurs des paramètres en fonction des seuils, afin d'observer graphiquement le comportement des parametres.
+Traçons le graphique des valeurs des paramètres en fonction des seuils, afin d'observer graphiquement le comportement des paramètres.  
 fonction *threshrange.plot*
  
 
 ```{r GPDseuil3, message=FALSE,warning=FALSE}
-threshrange.plot(Fort$Prec, r = c(2,4.5),nint=10)
-title(main="Stabilité des estimateurs en fonction des seuils")
-
+threshrange.plot(Fort$Prec, r = c(2,3.2))
 ```
 
-Il apparait sur ces 2 graphiques, une rupture de stabilité des paramètres pour un seuil autour de 2.8. Choisissons cette valeur pour seuil.
+Il apparait sur ces 2 graphiques, une rupture de stabilité des paramètres pour un seuil autour de 2.9. Choisissons cette valeur pour seuil.
 
 ## Modèle GPD avec MLE
 
 A partir d'un seuil fixé, les coefficients du modèle GDP (échelle, forme) sont estimés par maximum de vraissemblance.  
 
 ```{r gpdMle}
-seuil=2.8
-# modelisation des exces avec estimation coef selon MLE
-fitFortGPDMle=fevd(Fort$Prec,threshold=seuil,type="GP",method="MLE")
+seuil=2.9
+# modelisation des excès avec estimation coef selon MLE
+fitFortGPDMle=fevd(Fort$Prec,threshold=seuil,type="GP",method="MLE",time.units="days")
 fitFortGPDMle
 #IC des coefficients
 ci(fitFortGPDMle,type="parameter")
@@ -223,18 +222,17 @@ ci(fitFortGPDMle,type="return.level",return.period=100)
 ci(fitFortGPDMle,type="return.level",return.period=1000)
 # point final(Weibull)
 endp=round(seuil-((fitFortGPDMle$results[1]$par[1])/(fitFortGPDMle$results[1]$par[2])),2)
-endp
 
 ```
 
-**Domaine d'attaction**
+**Domaine d'attraction**
 
-La valeur estimée de gamma (shape) est de -0.37< 0 . Elle caractérise la domaine d'attraction de Weibull. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être positif (borne supérieure du CI >0). Nous testerons ci après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel) 
+La valeur estimée de gamma (shape) est négatif : -0.21< 0 . Elle caractérise le domaine d'attraction de Weibull. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être positif (borne supérieure du CI >0). Nous testerons ci-après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel).
 
 **Point final**  
 
 Dans le cas d'un domaine de Weibull, les niveaux de retour seront remplacés par le *point final*. Il s'agit de la valeur extrême qui ne pourra pas être dépassée : limite intrinsèque du phénomène observé (physique, technologique, physiologique...).   
-Ici le point final est de `r endp` pouces . On peut se demander si une limite a du sens concernant le niveau de précipitation?
+Ici le point final est de `r endp` pouces . On peut se demander si une limite a du sens concernant un niveau de précipitation?
   
 
 ## Modèle GPD Gumbel avec MLE
@@ -242,12 +240,13 @@ Ici le point final est de `r endp` pouces . On peut se demander si une limite a 
 Testons l'hypothèse de nullité du paramètre de forme, à savoir la distribution Gumbel des excès.
 
 ```{r GPDGumMle}
-fitFortGPDGumMle=fevd(Fort$Prec,threshold=seuil,type="Exponential",method="MLE")
+fitFortGPDGumMle=fevd(Fort$Prec,threshold=seuil,type="Exponential",method="MLE",time.units="days")
 #graphique d'ajustement
 plot(fitFortGPDGumMle,main=" ",cex.lab = .9)
 title("GPD - Gumbel - estimation par max de vraissemblance")
 ```
 
+L'ajustement présenté sur les graphiques ne donne pas de meilleurs résultats que sur les précédents. On ne retient pas l'hypothèse de la nullité du parametre forme.  
 
 ## Modèle GPD avec PWM 
 
@@ -268,22 +267,22 @@ ci(fitFortGPDMom,type="return.level",return.period=100)
 ci(fitFortGPDMom,type="return.level",return.period=1000)
 ```
 
-La valeur estimée de gamma (shape) est légèrement positif (0.037> 0). 
+La valeur estimée de gamma (shape) est positif (0.19> 0). On retient ici le domaine de Fréchet.  
 
 **Niveaux de retour à 100 ans et 1000 ans**
 
-Notons déjà le niveau de retour à 100 ans à 4.53 pouces avec un intervalle de confiance à 95% plus resserré qu'avec GEV. Celui à 1000 ans est de 6.22 pouces dans un intervalle moins large qu'avec GEV.  
+Notons déjà le niveau de retour à 100 ans à 4.5 pouces avec un intervalle de confiance à 95% plus resserré qu'avec GEV. Celui à 1000 ans est de 6.8 pouces dans un intervalle moins large qu'avec GEV.  
 
 
 # Conclusion
 
 ```{r tab}
-table_ccl=data.frame(methode_d_estimation=c("GEV-MLE","GEV-Moment","GPD-MLE","GPD-Moment"), estimation_param_forme=c("0.09","0.13","-0.37","0.037 "), domaine=c("Fréchet","Fréchet","Weibull","Fréchet"),point_final=c("X","X", endp,"X"),niv_retour_100_ans=c("5.1 pouces","4.87 pouces","X","4.53 pouces"),niv_retour_1000_ans=c("8.46 pouces","7.60 pouces" ,"X","6.22 pouces"))
+table_ccl=data.frame(methode_d_estimation=c("GEV-MLE","GEV-Moment","GPD-MLE","GPD-Moment"), estimation_param_forme=c("0.17","0.13","-0.21","0.19 "), domaine=c("Fréchet","Fréchet","Weibull","Fréchet"),point_final=c("X","X", endp,"X"),niv_retour_100_ans=c("5.1 pouces","4.9 pouces","X","4.5 pouces"),niv_retour_1000_ans=c("8.5 pouces","7.6 pouces" ,"X","6.54 pouces"))
 kable(head(table_ccl), format="markdown",caption="Résumé des tests",digits=2)
 ```
 
-Les valeurs extrêmes du niveau de précipitations appartiennent au domaine de **Fréchet**. Car si  on les suppose dans le domaine de Weibull, cela signifie que les précipitations ont une limite physique. 
-De plus, on retiendra plutôt la **méthode GPD** car elle est basée sur plus d'observations (ensemble des données=36524) alors de que GEV ne s'interesse qu'aux maxima (soit ici 100 données).  
+Les valeurs extrêmes du niveau de précipitations appartiennent au domaine de **Fréchet**. Car si on les suppose dans le domaine de Weibull, cela signifie que les précipitations ont une limite physique. 
+De plus, on retiendra plutôt la **méthode GPD** car elle est basée sur plus d'observations (ensemble des données=36524) que la méthode GEV, qui ne s'interesse qu'aux maxima (soit ici 100 données).  
 
 Finalement, la méthode retenue est :
 
@@ -291,9 +290,9 @@ Finalement, la méthode retenue est :
 **Distribution de Pareto généralisée (GPD) / Moments**  
   
   **- Domaine = Fréchet**  
-  **- Seuil fixé = 2.8 pouces**  
-  **- Estimation echelle = 0.64**  
-  **- Estimation forme =  0.037**  
-  **- Niveau de retour à 100 ans = 4.53 pouces**  
-  **- Niveau de retour à 1000 ans =  6.22 pouces**  
+  **- Seuil fixé = 2.9 pouces**  
+  **- Estimation echelle = 0.51**  
+  **- Estimation forme =  0.19**  
+  **- Niveau de retour à 100 ans = 4.5 pouces**  
+  **- Niveau de retour à 1000 ans =  6.8 pouces**  
 
