@@ -51,28 +51,28 @@ library("tidyverse")
 
 # Sujet : meilleurs temps à l'épreuve du 100 mètres
 
-Nous avons enregistré les meilleurs temps personnels des coureurs les plus rapides entre le 1er janvier 1991 et le 1er avril 2017. 
-Pour exclure, autant que possible, les temps liés au dopage, notre période d’observation commence donc début 1991 (mise en place des contrôles anti-dopage en compétition).  
-Chaque athlète n’apparaît qu’une fois dans le jeu de données. L’inclusion de plusieurs fois d’un athlète ne serait pas conforme à l’hypothèse de données indépendantes. Seuls les temps oﬃciellement reconnus et les temps avec une vitesse du vent inférieure ou égale à 2m/s sont pris en compte.
+Nous avons enregistré les meilleurs temps personnels des coureurs les plus rapides à l'épreuve du 100 mètres entre le 1er janvier 1991 et le 1er avril 2017. 
+Pour exclure, autant que possible, les temps liés au dopage, la période d’observation commence début 1991 (développement des contrôles anti-dopage).  
+Chaque athlète n’apparaît qu’une fois dans le jeu de données : l’inclusion de plusieurs performances d’un même athlète ne serait pas conforme à l’hypothèse de données indépendantes. Seuls les temps oﬃciellement reconnus et les temps obtenus avec une vitesse du vent inférieure ou égale à 2m/s sont pris en compte.
 Les temps pour le 100m sont disponibles en centièmes de secondes. 
 
-**source** : temps100m.csv qui rassemble :  
+**source** : *temps100m.csv* qui rassemble 
 
-  - Pour la période antérieure à 2001, les données proviennant du site Web suédois http://hem.bredband.net/athletics/athleticsall-timebest.htm. Ce site Web fournit tous les meilleurs temps jusqu’en 2001. 
-  - Pour la période du 01-01-2001 au 01-04-2017, les listes des temps officiels du site Web de l’IAAF : www.iaaf.org.  
+  - Pour la période antérieure à 2001, les données proviennant du site Web suédois http://hem.bredband.net/athletics/athleticsall-timebest.htm. Ce site Web fournit les meilleurs temps jusqu’en 2001. 
+  - Pour la période du 01/01/2001 au 01/04/2017, les listes des temps officiels du site Web de l’IAAF : www.iaaf.org.  
 
 **Objectif :**
-Nous aimerions savoir à quelle vitesse pouvons-nous courir? Autrement dit, nous nous intéressons au record mondial ultime.  
+Il s'agit de déterminer à quelle vitesse nous sommes capables de courir. Autrement dit, nous nous intéressons au record mondial ultime.  
 
 Il s'agit donc d'étudier les valeurs extrêmes de cette série en utilisant et comparant deux approches :  
 
-  - Generalized Extreme Value (GEV) : distribution des extrêmes generalisés   
+  - Generalized Extreme Value (GEV) : distribution géneralisée des valeurs extrêmes   
   - Generalized Pareto Distribution (GPD) : distribution generalisée de Pareto
 
 # Description de la série
 
-Le jeu de données ne contient qu'une variable (*temps*) qui recense 1005 relevés des meilleurs temps à la course sur 100m : ils sont entre 9.58 secondes et 10.30 secondes. La moyenne et la médiane de ces temps sont proches et élévées par rapport à la plage de valeurs, respectivement à 10.16s et 10.2s. 
-Ici on s'intéresse à la variable *temps* pour ses petites valeurs, donc les valeurs extrèmes seront des minima et la queue de distribution de la série sera pour les temps les plus bas (cf.histogramme).  
+Le jeu de données ne contient qu'une variable (*temps*) qui recense 1005 relevés des meilleurs temps à la course du 100m : ils sont entre 9.58 secondes et 10.30 secondes. La moyenne et la médiane de ces temps sont proches et élévées par rapport à la plage de valeurs, respectivement à 10.16s et 10.2s. 
+Ici on s'intéresse à la variable *temps* pour ses petites valeurs, donc les valeurs extrêmes seront des minima et la queue de distribution de la série représentera les temps les plus bas (cf.histogramme).  
 
 
 ```{r chargmt}
@@ -91,8 +91,9 @@ lines(TPSdensite, col = "black",lwd=3)
 ```
 
 Pour continuer à raisonner avec des maxima, nous ramenons le temps de course au 100m (variable *temps*) au nombre de kilomètres courus en 1 heure (variable *Speed* ).  
-Speed=360/temps  
-La variable *Speed* prend ses valeurs entre 34.93 et 37.58. La médiane et la moyenne, respectivement de 35.31 et 35.45, sont proches de la valeurs minimum, ce qui écrasse la série (concentration des performances vers les valeurs basses). Les performances de 8 athlètes se dégagent des autres, dépassant les 36.7km/h au 100m.
+Speed=360/temps   
+La variable *Speed* prend ses valeurs entre 34.93 et 37.58. La médiane et la moyenne, respectivement de 35.31 et 35.45, sont proches de la valeur minimum observée, ce qui écrasse la série (concentration des performances vers les valeurs basses). 
+Les performances de 8 athlètes se dégagent des autres, dépassant les 36.7km/h au 100m.
 
 ```{r descrSpeed}
 summary(Speed)
@@ -103,11 +104,11 @@ TPSdensite=density(Speed)
 lines(TPSdensite, col = "black",lwd=3)
 ```
 
-# Modélisation GEV : loi des maxima de la série
+# Modélisation Generalized Extreme Value (GEV) : loi des maxima de la série
 
 Comme la série est constituée des meilleurs temps personnels (assimilables à des maxima), il n'est pas nécessaire de faire d'extraction des maxima par bloc. Nous pouvons donc lancer la modélisation des GEV sur la série brute. 
 
-## Modèle GEV avec MLE 
+## Modèle GEV avec maximum de vraissemblance (MLE) 
 
 Les coefficients du modèle GEV, a (position), b (échelle), gamma (forme) sont estimés par maximum de vraissemblance (fonction *fevd*). A partir de la valeur estimée du paramètre forme, on déduira le domaine d'attraction des maxima, auquel appartient la loi caractérisant le comportement des niveaux de précipitations extrêmes.  
 
@@ -130,19 +131,19 @@ fitTPSGEVMle.Tpsniv=round(360/fitTPSGEVMle.Speedniv,2)
 TPSGEVMle.endp=round(fitTPSGEVMle$results[1]$par[1]-(fitTPSGEVMle$results[1]$par[2]/fitTPSGEVMle$results[1]$par[3]),2)
 ```
 
-**Domaine d'attaction des valeurs extrêmes**
+**Domaine d'attraction des valeurs extrêmes**
 
-La valeur estimée de gamma (shape) est de 0.363 > 0 (avec un intervalle de confiance aux bornes positives). Elle caractérise le domaine d'attraction de Fréchet.
-Les 4 graphiques montrent un ajustement non convainquant de la loi des extrêmes au DMA de Fréchet : les points empiriques et les courbes représentant le modèle sont éloignés pour des vitesses supérieurs à 36km/h.
+La valeur estimée de gamma (shape) est de 0.36 > 0 (avec un intervalle de confiance aux bornes positives). Elle caractérise le domaine d'attraction de Fréchet.
+Les graphiques montrent un ajustement non convainquant de la loi des extrêmes au DMA de Fréchet : les points empiriques et les courbes représentant le modèle sont éloignés pour des vitesses supérieures à 36km/h.
 
 **Niveaux de retour à 100 ans et 1000 ans**  
 
 Le niveau de retour à 100 ans est ici de `r fitTPSGEVMle.Speedniv[1]` km/h, (`r fitTPSGEVMle.Tpsniv[1]` secondes au 100m) et le niveau de retour à 1000 ans de `r fitTPSGEVMle.Speedniv[2]` km/h,(`r fitTPSGEVMle.Tpsniv[2]` secondes au 100m).
 
 
-## Modèle GEV avec PWM
+## Modèle GEV avec méthode des moments (PWM)
 
-Ici, les coefficients du modèle GEV (position, echelle, forme) sont estimés par la méthode des moments.  
+Ici, les coefficients du modèle GEV (position, échelle, forme) sont estimés par la méthode des moments.  
 
 ```{r gevPWM}
 # modelisation des maxima avec estimation coef selon PWM
@@ -174,9 +175,9 @@ Les 2 graphiques qqplot(quantiles du modèle / quantiles empiriques et quantiles
 Le niveau de retour à 100 ans est ici de `r fitTPSGEVMom.Speedniv[1]` km/h, (`r fitTPSGEVMom.Tpsniv[1]` secondes au 100m)  et le niveau de retour à 1000 ans de `r fitTPSGEVMom.Speedniv[2]` km/h, (`r fitTPSGEVMom.Tpsniv[2]` secondes au 100m).
 
 
-# Modélisation GPD : loi des excès de la série
+# Modélisation Generalized Pareto Distribution (GPD) : loi des excès de la série
 
-Il s'agit ici d'envisager les valeurs extrémes comme les valeurs depassant un seuil à fixer et de modéliser les dépassements (excès).
+Il s'agit ici d'envisager les valeurs extrêmes comme les valeurs dépassant un seuil à fixer et donc de modéliser ces dépassements (excès).
 
 
 ## Choix du seuil
@@ -193,7 +194,7 @@ Le graphique "Mean Residual Life Plot" permet d'évaluer une valeur de seuil de 
 
 **Seuils en fonction du nombre de dépassements**
 
-Une autre méthode pour évaluer et selectionner le seuil est de tester plusieurs valeurs en fonction du nombre d'excès observés au delà de celui-ci (fonction *findThreshold*) . 
+Une autre méthode pour évaluer et sélectionner le seuil est de tester plusieurs valeurs en fonction du nombre d'excès observés au delà de celui-ci (fonction *findThreshold*) . Voici les seuils pour 4 excès testés :  
 
 ```{r GPDseuil2}
 seuilfind=findThreshold(Speed, c(1,8,20,100))
@@ -205,20 +206,20 @@ seuilfind
   - 20 coureurs (2%) ont atteint : 36.50 km/h  
   - 100 coureurs (10%) ont atteint : 36.06 km/h  
   
-Sélectionner un seuil qui définit autour de 1%-2% de valeurs extremes peut être un choix raisonnable.  On peut retenir 36.50 km/h ou 36.66 km/h.  
+Sélectionner un seuil qui définit autour de 1%-2% de valeurs extrêmes peut être un choix raisonnable.  On pourrait retenir 36.50 km/h ou 36.66 km/h.  
 
 **Seuils en fonction de la stabilité des estimateurs**  
-Traçons le graphique des valeurs des paramètres en fonction des seuils, afin d'observer graphiquement le comportement des paramètres.
+
+Traçons le graphique des valeurs des paramètres en fonction des seuils, afin d'observer graphiquement le comportement des paramètres et en particulier leur stabilité.
 fonction *threshrange.plot*
  
 
 ```{r GPDseuil3, message=FALSE,warning=FALSE}
 threshrange.plot(Speed, r = c(35,37),nint=10)
-title(main="Stabilité des estimateurs en fonction des seuils")
 
 ```
 
-Il apparait sur ces 2 graphiques, une rupture de stabilité des paramètres pour un seuil autour de 36.5km/h. Choisissons cette valeur pour seuil.
+Il apparait sur ces 2 graphiques, une rupture de stabilité des paramètres après 36.5km/h. Choisissons cette valeur pour seuil.
 
 ## Modèle GPD avec MLE
 
@@ -247,7 +248,7 @@ endp
 
 **Domaine d'attraction**
 
-La valeur estimée de gamma (shape) est de 0.47> 0 . Elle caractérise la domaine d'attraction de Fréchet. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être négatif (borne inférieure du CI <0). Nous testerons ci-après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel).  
+La valeur estimée de gamma (shape) est de 0.47> 0 . Elle caractérise le domaine d'attraction de Fréchet. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être négatif (borne inférieure du CI <0). Nous testerons ci-après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel).  
 Les graphiques ne donnent pas de bons resultats d'ajustement.  
 
 **Niveaux de retour**  
@@ -266,7 +267,7 @@ plot(fitTPSGPDGumMle,main=" ",cex.lab = .9)
 title("GPD - Gumbel - estimation par max de vraissemblance")
 ```
 
-Les graphiques d'ajustement donnent de moins bons résultats qu'avec les modélisations précédentes. Nous ne retiendrons pas Gumbel.
+Ici les graphiques d'ajustement donnent de moins bons résultats qu'avec les modélisations précédentes. Nous ne retiendrons pas Gumbel.
 
 ## Modèle GPD avec PWM 
 
@@ -289,7 +290,7 @@ fitTPSGPDMom.Tpsniv=round(360/fitTPSGPDMom.Speedniv,2)
 
 ```
 
-La valeur estimée de gamma (shape) est positive (0.408> 0). Fréchet ressort encore comme le domaine d'appartenance de la distribution des extrêma.  
+La valeur estimée de gamma (shape) est positive (0.41> 0). Fréchet ressort encore comme le domaine d'appartenance de la distribution des extrêmes.  
 Les graphiques ne donnent pas non plus ici de bons resultats d'ajustement.  
 
 **Niveaux de retour**  
