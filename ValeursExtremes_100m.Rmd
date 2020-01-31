@@ -194,17 +194,17 @@ Le graphique "Mean Residual Life Plot" permet d'évaluer une valeur de seuil de 
 
 **Seuils en fonction du nombre de dépassements**
 
-Une autre méthode pour évaluer et sélectionner le seuil est de tester plusieurs valeurs en fonction du nombre d'excès observés au delà de celui-ci (fonction *findThreshold*) . Voici les seuils pour 4 excès testés :  
+Une autre méthode pour évaluer et sélectionner le seuil est de tester plusieurs valeurs en fonction du nombre de dépassements observés au delà de celui-ci (fonction *findThreshold*) . Voici les seuils pour 4 niveaux de dépassements (ici nombre de coureurs ayant atteint ou dépassé le temps-seuil) :  
 
 ```{r GPDseuil2}
 seuilfind=findThreshold(Speed, c(1,8,20,100))
 seuilfind
 ```
 
-  - 1 coureur (0.1%) a atteint : 37.16 km/h (correspond au max de la série)  
-  - 8 coureurs (1%) ont atteint : 36.66 km/h
-  - 20 coureurs (2%) ont atteint : 36.50 km/h  
-  - 100 coureurs (10%) ont atteint : 36.06 km/h  
+  - 1 coureur (0.1%)   : 37.16 km/h (correspond au max de la série)  
+  - 8 coureurs (1%)    : 36.66 km/h
+  - 20 coureurs (2%)   : 36.50 km/h  
+  - 100 coureurs (10%) : 36.06 km/h  
   
 Sélectionner un seuil qui définit autour de 1%-2% de valeurs extrêmes peut être un choix raisonnable.  On pourrait retenir 36.50 km/h ou 36.66 km/h.  
 
