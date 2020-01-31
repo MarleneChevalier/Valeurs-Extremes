@@ -53,19 +53,17 @@ library("fitdistrplus")
 ```
 
 
-# Sujet : niveaux maximum de la mer dans la région de Port Pirie, au Australie du Sud
+# Sujet : niveaux maximum de la mer dans la région de Port Pirie (Australie du Sud)
 
-Il s'agit d'étudier les valeurs extrêmes des niveaux annuels de la mer qui ont été enregistrés dans la région de Port Pirie,au nord d’Adélaïde, en Australie du Sud, au cours de la période 1923-1987. 
+Il s'agit d'étudier les valeurs extrêmes des niveaux annuels de la mer qui ont été enregistrés dans la région de Port Pirie, au nord d’Adélaïde, en Australie du Sud, au cours de la période 1923-1987. 
  
-source : data(portpirie)
+source : *data(portpirie)*
 
-Il s'agit d'obtenir une estimation du niveau maximal de la mer susceptible de se produire dans la région au cours des 100 ou 1000 prochaines années. On supposera que le modèle est constant sur la période d’observations, de sorte que nous modélisons les données comme des observations indépendantes de la distribution du GEV : distribution des extrêmes généralisés.
-
+Nous cherchons à obtenir une estimation du niveau maximal de la mer susceptible de se produire dans cette région au cours des 100 et 1000 prochaines années. On supposera que le modèle est constant sur la période d’observation, de sorte que nous modélisons les données comme des observations indépendantes de la distribution du GEV : distribution des extrêmes généralisée.
 
 # Description de la série
 
-La série comprend 65 de niveaux maximum annuels de la mer (mètre), relevés entre 1923 et 1987.
-Les niveaux sont compris entre 3.57m et 4.69m, avec une moyenne et une médiane proches (resp.3.98m et 3.96m), ce qui est confirmé par le boxplot reparti autour de la moyenne. Seules 3 valeurs sortent franchement du nuage de points : 4.69m en 1934, 4.55m en 1953 et 1981. 
+La série comprend 65 de niveaux maximum annuels de la mer (en mètre), relevés entre 1923 et 1987. Les niveaux sont compris entre 3.57m et 4.69m, avec une moyenne et une médiane proches (resp.3.98m et 3.96m), ce qui est confirmé par le boxplot reparti autour de la moyenne. Seules 3 valeurs sortent franchement du nuage de points : 4.69m en 1934, 4.55m en 1953 et 1981. 
 
 ```{r chargmt}
 data(portpirie)
@@ -94,10 +92,10 @@ lines(PPdensite, col = "black",lwd=3)
 ```
 
 
-# Modélisation GEV : loi des maxima de la série
+# Modélisation Generalized Extreme Value (GEV) : loi des maxima de la série
 
 
-## Modèle GEV avec MLE 
+## Modèle GEV avec maximum de vraissemblance (MLE) 
 
 Les coefficients du modèle GEV, a (position), b (échelle), gamma (forme) sont estimés par maximum de vraissemblance (fonction *fevd*). A partir de la valeur estimée du paramètre forme, on déduira le domaine d'attraction des maxima (DMA), c'est à dire le domaine auquel appartient la loi caractérisant des niveaux maximum de la mer à Port Pirie.
 
@@ -116,19 +114,19 @@ PPGEVMle.endp=round(fitPPGEVMle$results[1]$par[1]-(fitPPGEVMle$results[1]$par[2]
 
 **Domaine d'attraction des valeurs extrêmes**
 
-La valeur estimée de gamma (shape) est de -0.0501 < 0. Elle caractérise le domaine d'attraction de Weibull. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être positif (borne supérieure du CI >0). Nous testerons donc ci-après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel).   
-Les 4 graphiques montrent un bon ajustement de la loi des extrêmes au DMA de Weibull (points empiriques et modélisés proches, relation niveaux et période de retour proches des valeurs de la loi théorique).
+La valeur estimée de gamma (shape) est de -0.05 < 0. Elle caractérise le domaine d'attraction de Weibull. Cependant l'intervalle de confiance du paramètre gamma nous indique qu'il pourrait être positif (borne supérieure du CI >0). Nous testerons donc ci-après, le résultat de la modélisation pour gamma = 0 (domaine de Gumbel).   
+Les graphiques montrent un bon ajustement de la loi des extrêmes au DMA de Weibull (points empiriques et modélisés proches, relation niveaux et période de retour proches des valeurs de la loi théorique).
 
 
 **Point terminal**  
-Le point terminal est la limite supérieur atteinte par le domaine d'attraction. Il s'obtient à partir des paramètres estimés: position - (échelle/forme)  
+Le point terminal est la limite supérieure atteinte par le domaine d'attraction. Il s'agit de la valeur extrême qui ne pourra pas être dépassée : limite intrinsèque du phénomène observé (physique, technologique, physiologique...). Il s'obtient à partir des paramètres estimés: position - (échelle / forme).  
 
 Pour le domaine de Weibull, on calculera donc le point terminal pour illustrer la tendance des extrêmes à long terme . En effet, la loi de Weibull étant bornée supérieurement, l'estimation de niveaux de retour n'a pas de sens dans ce cas.
-Le point terminal est estimé ici à : `r PPGEVMle.endp`
+Le point terminal est estimé ici à : `r PPGEVMle.endp` m
 
 ## Modèle Gumbel avec MLE 
 
-Nous testons ici l'appartenance du modèle des extrêmes au domaine de Gumbel, c'est à dire  le paramètre de forme (gamma) peut-il être nul?
+Nous testons ici l'appartenance du modèle des extrêmes au domaine de Gumbel, c'est à dire : est-ce que le paramètre de forme (gamma) peut être nul?
 
 
 ```{r gumMle}
@@ -140,17 +138,25 @@ ci(fitPPGumMle,type="parameter")
 # période de retour à 100 ans
 ci(fitPPGumMle,type="return.level",return.period=100)
 # période de retour à 1000 ans
+
 ci(fitPPGumMle,type="return.level",return.period=1000)
 # graphiques d'ajustement
+fitPPGumMle.SeaLevel=round(return.level(fitPPGumMle, return.period = c(100, 1000)),2)
+
 plot(fitPPGumMle,main=" ",cex.lab = .9)
 title("Gumbel - estimation par max de vraissemblance")
 ```
 
-Les graphiques d'ajustement de la loi de niveau maximum vers une loi du domaine de Gumbel  donnent de très bons résultats. L'hypothèse que le paramètre de forme, gamma, soit nul est donc possible. 
-De plus, les intervalles de confiance des niveaux de retour à 100 ans et 1000 ans sont très resserrés autour de la valeur ponctuelle estimée, ce qui marque une précision forte dans cette estimation.
+Les graphiques d'ajustement de la loi des niveau maximum vers une loi du domaine de Gumbel  donnent de très bons résultats. L'hypothèse que le paramètre de forme, gamma, soit nul est donc possible. 
+De plus, les intervalles de confiance des niveaux de retour à 100 ans et 1000 ans sont très resserrés autour de la valeur ponctuelle estimée, ce qui marque une précision forte de cette estimation.
+
+**Niveaux de retour à 100 ans et 1000 ans**  
+
+Le niveau de retour à 100 ans est ici de `r fitPPGumMle.SeaLevel[1]` m et celui à 1000 ans de `r fitPPGumMle.SeaLevel[2]` m.
 
 
-## Modèle GEV avec PWM
+
+## Modèle GEV avec méthode des moments (PWM)
 
 Ici, les coefficients du modèle GEV (position, echelle, forme) sont estimés par la méthode des moments.  
 
@@ -168,38 +174,38 @@ title("GEV- estimation par la méthode des moments")
 # période de retour à 1000 ans
 #ci(fitPPGEVMom,type="return.level",return.period=1000)
 # point final(Weibull)
-fitPPGEVMom$results[1]
-fitPPGEVMom$results[2]
-fitPPGEVMom$results[3]
+#fitPPGEVMom$results[1]
+#fitPPGEVMom$results[2]
+#fitPPGEVMom$results[3]
 PPGEVMom.endp=round(fitPPGEVMom$results[1]-(fitPPGEVMom$results[2]/fitPPGEVMom$results[3]),2)
 ```
 
 **Domaine d'attraction des valeurs extrêmes**
 
-La valeur estimée de gamma (shape) est là aussi négative (=-0.05).
-Les 4 graphiques montrent là aussi un bon ajustement de la loi des extrêmes au DMA de Weibull.
+Les résultats sont quasi-identiques à ceux obtenus par l'estimation du maximum de vraissemblance. La valeur estimée de gamma (shape) est là aussi négative (=-0.05).
+Les graphiques montrent là aussi un bon ajustement de la loi des extrêmes au DMA de Weibull.
 
 **Point terminal**
 
-Le point terminal est dans ce cas de : `r PPGEVMom.endp`
+Le point terminal est dans ce cas de : `r PPGEVMom.endp` m
 
 
 # Conclusion
 
 ```{r tab}
-table_ccl=data.frame(methode_d_estimation=c("GEV-MLE","Gumble-MLE","GEV-Moment"), estimation_param_forme=c("-0.05","0","-0.05"), domaine=c("Weibull","Gumbel","Weibull"),point_final=c("7.60m","X","7.82m"),niv_retour_100_ans=c("X","4.77m ","X"),niv_retour_1000_ans=c("X","5.22m","X"))
+table_ccl=data.frame(methode_d_estimation=c("GEV-MLE","Gumble-MLE","GEV-Moment"), estimation_param_forme=c("-0.05","0","-0.05"), domaine=c("Weibull","Gumbel","Weibull"),point_final=c("7.83m","X","7.82m"),niv_retour_100_ans=c("X","4.77m ","X"),niv_retour_1000_ans=c("X","5.22m","X"))
 kable(head(table_ccl), format="markdown",caption="Résumé des tests",digits=2)
 ```
 
 Les résultats graphiques donnés par chaque méthode montrent de très bons ajustements.
-Il semble que ceux obtenus par le Gumbel et l'estimation des paramètres par le maximum de vraissemblance soient légèrement meilleurs . On retiendra donc ce modèle.
+Il semble que ceux obtenus par Gumbel et l'estimation des paramètres par le maximum de vraissemblance soient légèrement meilleurs . De plus, envisager une borne limite pour le niveau de la mer (point terminal de Weibull) n'est pas intuitif. On retiendra donc le modèle de Gumbel.
 
 
-**Modèle Gumbel avec estimation par maximum de vraissenblance**  
+**Modèle Gumbel avec estimation par maximum de vraissemblance**  
    
-  **- Domaine = Gumbel** 
+  **- Domaine = Gumbel**   
   **- Estimation position = 3.87**   
   **- Estimation echelle = 0.19**  
   **- Estimation forme = 0**  
-  **- Niveau de retour à 100 ans = 4.77**   
-  **- Niveau de retour à 1000 ans = 5.22**   
+  **- Niveau de retour à 100 ans = 4.8m**   
+  **- Niveau de retour à 1000 ans = 5.2m**   
